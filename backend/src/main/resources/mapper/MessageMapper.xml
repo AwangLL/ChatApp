@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.awang.dao.MessageMapper" >
+    <select id="getMessage" parameterType="int"
+            resultType="com.awang.domain.Message">
+        select * from sys_message where id=#{id}
+    </select>
+    <insert id="insertMessage" parameterType="com.awang.domain.Message"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into sys_message(from_id, goto_id, type, time, content, is_read)
+        values(#{fromId}, #{gotoId}, #{type}, #{time}, #{content}, #{read})
+    </insert>
+    <insert id="insertGroupMessage" parameterType="com.awang.domain.Message">
+        insert into group_message(message_id, user_id, is_read)
+        select #{id},user_id,false from group_user where group_id=#{gotoId} and user_id!=#{fromId}
+    </insert>
+    <select id="getFriendHistoryMessage" parameterType="int"
+            resultType="com.awang.domain.Message">
+        select * from sys_message where type=0 and ((goto_id=#{myId} and from_id=#{friendId}) or
+        (goto_id=#{friendId} and from_id=#{myId}))
+        order by id
+    </select>
+    <select id="getGroupHistoryMessage" parameterType="int"
+            resultType="com.awang.domain.Message">
+        select * from sys_message where goto_id=#{groupId} and type=1
+        order by id
+    </select>
+    <select id="getNewFriendMessage" parameterType="int"
+            resultType="com.awang.domain.Message">
+        select * from sys_message where goto_id=#{myId} and is_read=false and type=0
+        order by id
+    </select>
+    <select id="getNewGroupMessage" parameterType="int"
+            resultType="com.awang.domain.Message">
+        select * from sys_message where id in (
+            select message_id from group_message where user_id=#{myId} and group_message.is_read=false
+        ) order by id
+    </select>
+    <update id="readMessage" parameterType="int">
+        update sys_message set is_read=true where id=#{id}
+    </update>
+    <update id="readGroupMessage" parameterType="int">
+        update group_message set is_read=true where message_id=#{id} and user_id=#{myId}
+    </update>
+</mapper>

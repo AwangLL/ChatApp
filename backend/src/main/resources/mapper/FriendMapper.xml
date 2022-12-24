@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.awang.dao.FriendMapper" >
+    <!--    getFriend-->
+    <select id="getFriend" parameterType="int"
+            resultType="com.awang.domain.User">
+        select * from sys_user where id in (
+            select id2 as id from sys_friend where id1=#{myID} and accepted=true UNION
+            select id1 as id from sys_friend where id2=#{myID} and accepted=true
+        )
+    </select>
+    <!--    getFriendRequest-->
+    <select id="getFriendRequest" parameterType="int"
+            resultType="com.awang.domain.User">
+    select * from sys_user where id in (
+        select id1 from sys_friend where id2=#{myId} and accepted=false
+    )
+    </select>
+    <delete id="deleteFriend" parameterType="int">
+        delete from sys_friend where (id1=#{myId} and id2=#{friendId}) or (id2=#{myId} and id1=#{friendId})
+    </delete>
+    <!--    addFriendRequest-->
+    <insert id="addFriendRequest" parameterType="int">
+        insert into sys_friend select #{myId},#{friendId},false from dual
+        where not exists(select * from sys_friend where (id1=#{myId} and id2=#{friendId}) or (id1=#{friendId} and id2=#{myId}))
+    </insert>
+    <!--    acceptFriendRequest-->
+    <update id="acceptFriendRequest" parameterType="int">
+        update sys_friend set accepted=true where id1=#{friendId} and id2=#{myId}
+    </update>
+    <!--    refuseFriendRequest-->
+    <delete id="refuseFriendRequest" parameterType="int">
+        delete from sys_friend where id1=#{friendId} and id2=#{myId}
+    </delete>
+</mapper>

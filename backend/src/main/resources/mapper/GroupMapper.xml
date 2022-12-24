@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.awang.dao.GroupMapper" >
+    <select id="getUserGroup" parameterType="int"
+            resultType="com.awang.domain.Group">
+        select * from sys_group where id in (
+            select group_id from group_user where user_id=#{userId}
+        )
+    </select>
+    <select id="getGroupUserId" parameterType="int"
+            resultType="int">
+        select user_id from group_user where group_id=#{groupId}
+    </select>
+    <select id="getGroupUser" parameterType="int"
+            resultType="com.awang.domain.User">
+        select * from sys_user where id in (
+            select user_id from group_user where group_id=#{groupId}
+        )
+    </select>
+    <insert id="enterGroup" parameterType="int">
+        insert into group_user select #{groupId},#{userId} from dual
+        where not exists(select * from group_user where group_id=#{groupId} and user_id=#{userId})
+    </insert>
+    <delete id="exitGroup" parameterType="int">
+        delete from group_user where group_id=#{groupId} and user_id=#{userId}
+    </delete>
+    <select id="searchGroup" parameterType="int"
+            resultType="com.awang.domain.Group">
+        select * from sys_group where id=#{groupId}
+    </select>
+</mapper>
